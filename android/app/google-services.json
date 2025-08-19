@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "120090476985",
+    "project_id": "kurumzili",
+    "storage_bucket": "kurumzili.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:120090476985:android:b28716a0b90dc8e226f668",
+        "android_client_info": {
+          "package_name": "com.example.kurumzili"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrTw7PEOdC_1gRPpykHYlq-LttvcW-7EM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
