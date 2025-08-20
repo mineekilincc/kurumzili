@@ -7,37 +7,34 @@ class AddUserController {
   final surnameController = TextEditingController();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
-  final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final schoolNameController = TextEditingController();
   final schoolIdController = TextEditingController();
   final classController = TextEditingController();
   final studentNameController = TextEditingController();
 
-  final List<String> roles = ['Veli', 'Öğrenci', 'Yönetici'];
+  final List<String> roles = ['Veli', 'Öğretmen'];
   String? selectedRole;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  List<SchoolModel> schools = [];
+  List<SchoolModel> allowedSchools = []; // Müdürün görebileceği okullar
   SchoolModel? selectedSchool;
-
   String? selectedClass;
   String? selectedStudent;
 
   List<String> filteredClasses = [];
   List<String> filteredStudents = [];
 
-  Future<void> fetchSchools() async {
-    final querySnapshot = await _firestore.collection('schools').get();
-    schools = querySnapshot.docs
-        .map((doc) => SchoolModel.fromMap(doc.data(), doc.id))
-        .where((school) => school.schoolName.isNotEmpty)
-        .toList();
-
-    if (schools.isNotEmpty) {
-      selectedSchool = schools.first;
+  /// Müdür için izin verilen okulları ayarla
+  void setAllowedSchools(List<SchoolModel> schools) {
+    allowedSchools = schools;
+    if (allowedSchools.isNotEmpty) {
+      selectedSchool = allowedSchools.first;
       filteredClasses = selectedSchool!.classes;
+    } else {
+      selectedSchool = null;
+      filteredClasses = [];
     }
   }
 
@@ -66,22 +63,33 @@ class AddUserController {
 
   Future<String?> addUser() async {
     try {
+      final phone = phoneController.text.trim();
+      if (phone.isEmpty) return 'Telefon boş olamaz';
+      final phoneRegex = RegExp(r'^[0-9]{10}$');
+      if (!phoneRegex.hasMatch(phone)) return 'Telefon 10 haneli olmalı';
+
+      final query = await _firestore
+          .collection('users')
+          .where('phone', isEqualTo: phone)
+          .get();
+      if (query.docs.isNotEmpty) return 'Bu telefon numarası zaten kayıtlı';
+
       final schoolId = schoolIdController.text.isEmpty
-          ? 'SCH-${DateTime.now().millisecondsSinceEpoch}'
+          ? selectedSchool?.schoolId ??
+              'SCH-${DateTime.now().millisecondsSinceEpoch}'
           : schoolIdController.text;
 
       final userData = {
         'role': selectedRole,
-        'name': nameController.text,
-        'surname': surnameController.text,
-        'username': usernameController.text,
-        'password': passwordController.text,
-        'email': emailController.text,
-        'phone': phoneController.text,
-        'schoolName': schoolNameController.text,
+        'name': nameController.text.trim(),
+        'surname': surnameController.text.trim(),
+        'username': usernameController.text.trim(),
+        'password': passwordController.text.trim(),
+        'phone': phone,
+        'schoolName': schoolNameController.text.trim(),
         'schoolId': schoolId,
-        'class': classController.text,
-        'studentName': studentNameController.text,
+        'class': classController.text.trim(),
+        'studentName': studentNameController.text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
       };
 
@@ -92,10 +100,10 @@ class AddUserController {
     }
   }
 
-  String? validateTurkish(String? value, String fieldName) {
-    if (value == null || value.isEmpty) return "$fieldName boş olamaz";
-    final regex = RegExp(r"^[a-zA-ZÇŞĞÜÖİçşğüöı\s]+$");
-    if (!regex.hasMatch(value)) return "$fieldName yalnızca harf içerebilir";
+  String? textValidator(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) return "$fieldName boş olamaz";
+    final regex = RegExp(r"^[a-zA-ZçÇşŞğĞüÜöÖıİ\s]+$");
+    if (!regex.hasMatch(value.trim())) return "$fieldName yalnızca harf içerebilir";
     return null;
   }
 
@@ -104,7 +112,6 @@ class AddUserController {
     surnameController.dispose();
     usernameController.dispose();
     passwordController.dispose();
-    emailController.dispose();
     phoneController.dispose();
     schoolNameController.dispose();
     schoolIdController.dispose();

@@ -30,7 +30,7 @@ class _VelihomePageState extends State<VelihomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Hoş Geldiniz, ${widget.user.username.toString()}",
+          "Hoş Geldiniz, ${widget.user.name.toString()}",
           style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color.fromARGB(255, 13, 22, 74),

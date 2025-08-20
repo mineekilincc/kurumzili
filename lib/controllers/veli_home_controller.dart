@@ -8,17 +8,13 @@ class VeliHomeController {
   final VoidCallback onStateChanged;
 
   VeliHomeController({required this.user, required this.onStateChanged}) {
-    // TextField’ları kullanıcı bilgileriyle doldur
-    nameController.text = user.name ?? '';
-    usernameController.text = user.username ?? '';
-    schoolNameController.text = user.schoolName ?? '';
-    phoneController.text = user.phone?.toString() ?? '';
-    emailController.text = user.email ?? '';
-    passwordController.text = user.password ?? '';
-  }
+  nameController.text = user.name ?? '';
+  phoneController.text = user.phone ?? '';
+  // usernameController artık gerekli değilse kullanmayabilirsin
+}
+
 
   late final TextEditingController nameController = TextEditingController();
-  late final TextEditingController usernameController = TextEditingController();
   late final TextEditingController schoolNameController = TextEditingController();
   late final TextEditingController phoneController = TextEditingController();
   late final TextEditingController emailController = TextEditingController();
@@ -49,7 +45,6 @@ class VeliHomeController {
 
   void dispose() {
     nameController.dispose();
-    usernameController.dispose();
     schoolNameController.dispose();
     phoneController.dispose();
     emailController.dispose();

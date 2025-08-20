@@ -11,16 +11,16 @@ class SchoolModel {
     required this.students,
   });
 
+  /// Firestore dokümanından SchoolModel oluştur
   factory SchoolModel.fromMap(Map<String, dynamic> map, String docId) {
-    // classes listesi
+    // Sınıflar listesi
     final classList = List<String>.from(map['classes'] ?? []);
 
-    // students map'i, her value bir liste olacak şekilde
+    // Öğrenciler map'i, her value bir liste olacak şekilde
     final studentsMap = <String, List<String>>{};
-    if (map['students'] != null) {
+    if (map['students'] != null && map['students'] is Map) {
       final rawStudents = Map<String, dynamic>.from(map['students']);
       rawStudents.forEach((key, value) {
-        // her öğrenci listesi olarak parse ediliyor
         if (value is List) {
           studentsMap[key] = List<String>.from(value);
         } else if (value is String) {
@@ -36,4 +36,25 @@ class SchoolModel {
       students: studentsMap,
     );
   }
+
+  /// SchoolModel'i JSON'a çevir
+  Map<String, dynamic> toJson() {
+    return {
+      'schoolId': schoolId,
+      'schoolName': schoolName,
+      'classes': classes,
+      'students': students,
+    };
+  }
+
+  /// Dropdown ve karşılaştırmalar için eşitlik
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SchoolModel &&
+          runtimeType == other.runtimeType &&
+          schoolId == other.schoolId;
+
+  @override
+  int get hashCode => schoolId.hashCode;
 }

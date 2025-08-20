@@ -18,7 +18,6 @@ class ProfilePageController {
     nameController.text = user.name ?? '';
     schoolNameController.text = user.schoolName ?? '';
     phoneController.text = user.phone?.toString() ?? '';
-    emailController.text = user.email ?? '';
     usernameController.text = user.username ?? '';
     passwordController.text = user.password ?? '';
     selectedRole = user.role ?? 'Veli';

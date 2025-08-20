@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // <-- GEREKLİ IMPORT
+//import 'package:kurumzili/views/mmhome_page.dart';
 import 'firebase_options.dart';                   // <-- GEREKLİ IMPORT
 import 'views/login_page.dart';
 
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       // HİÇBİR DEĞİŞİKLİK YOK: Uygulama hala doğrudan LoginPage'den başlıyor.
-      home: LoginPage(),
+      home: const LoginPage(),
     );
   }
 }
