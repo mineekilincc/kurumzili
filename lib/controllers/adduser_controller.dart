@@ -4,99 +4,80 @@ import '../model/school_model.dart';
 
 class AddUserController {
   final nameController = TextEditingController();
-  final surnameController = TextEditingController();
-  final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final phoneController = TextEditingController();
-  final schoolNameController = TextEditingController();
-  final schoolIdController = TextEditingController();
-  final classController = TextEditingController();
   final studentNameController = TextEditingController();
+  final studentClassController = TextEditingController();
 
   final List<String> roles = ['Veli', 'Öğretmen'];
   String? selectedRole;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  List<SchoolModel> allowedSchools = []; // Müdürün görebileceği okullar
-  SchoolModel? selectedSchool;
-  String? selectedClass;
-  String? selectedStudent;
+  List<Schools> allowedSchools = [];
+  Schools? selectedSchool;
 
-  List<String> filteredClasses = [];
-  List<String> filteredStudents = [];
-
-  /// Müdür için izin verilen okulları ayarla
-  void setAllowedSchools(List<SchoolModel> schools) {
+  void setAllowedSchools(List<Schools> schools) {
     allowedSchools = schools;
-    if (allowedSchools.isNotEmpty) {
-      selectedSchool = allowedSchools.first;
-      filteredClasses = selectedSchool!.classes;
-    } else {
-      selectedSchool = null;
-      filteredClasses = [];
-    }
+    selectedSchool = allowedSchools.isNotEmpty ? allowedSchools.first : null;
   }
 
-  void onSchoolSelected(SchoolModel? school) {
+  void onSchoolSelected(Schools? school) {
     selectedSchool = school;
-    schoolNameController.text = school?.schoolName ?? '';
-    filteredClasses = school?.classes ?? [];
-    selectedClass = null;
-    filteredStudents = [];
-    selectedStudent = null;
-    studentNameController.text = '';
   }
 
-  void onClassSelected(String? className) {
-    selectedClass = className;
-    classController.text = className ?? '';
-    filteredStudents = selectedSchool?.students[className] ?? [];
-    selectedStudent = null;
-    studentNameController.text = '';
-  }
-
-  void onStudentSelected(String? studentName) {
-    selectedStudent = studentName;
-    studentNameController.text = studentName ?? '';
-  }
-
+  /// Yeni kullanıcıyı Firestore'a ekler
   Future<String?> addUser() async {
     try {
       final phone = phoneController.text.trim();
-      if (phone.isEmpty) return 'Telefon boş olamaz';
-      final phoneRegex = RegExp(r'^[0-9]{10}$');
-      if (!phoneRegex.hasMatch(phone)) return 'Telefon 10 haneli olmalı';
+      final name = nameController.text.trim();
+      final studentName = studentNameController.text.trim();
+      final studentClass = studentClassController.text.trim();
 
-      final query = await _firestore
-          .collection('users')
-          .where('phone', isEqualTo: phone)
-          .get();
-      if (query.docs.isNotEmpty) return 'Bu telefon numarası zaten kayıtlı';
+      final newUserRef = _firestore.collection('users').doc();
 
-      final schoolId = schoolIdController.text.isEmpty
-          ? selectedSchool?.schoolId ??
-              'SCH-${DateTime.now().millisecondsSinceEpoch}'
-          : schoolIdController.text;
+      // Öğrenci bilgileri Map olarak ekleniyor
+      final Map<String, String> studentMap = {};
+      if (studentName.isNotEmpty && studentClass.isNotEmpty) {
+        studentMap[studentClass] = studentName;
+      }
 
       final userData = {
+        'userid': newUserRef.id,
         'role': selectedRole,
-        'name': nameController.text.trim(),
-        'surname': surnameController.text.trim(),
-        'username': usernameController.text.trim(),
+        'name': name,
         'password': passwordController.text.trim(),
         'phone': phone,
-        'schoolName': schoolNameController.text.trim(),
-        'schoolId': schoolId,
-        'class': classController.text.trim(),
-        'studentName': studentNameController.text.trim(),
+        'schoolId': selectedSchool?.schoolId,
+        'schoolName': selectedSchool?.schoolName ?? '',
+        'studentNames': studentMap,
+        'studentclasses': studentClass.isNotEmpty ? [studentClass] : [],
         'createdAt': FieldValue.serverTimestamp(),
       };
 
-      await _firestore.collection('users').add(userData);
+      final batch = _firestore.batch();
+      batch.set(newUserRef, userData);
+
+      // Sadece veli ekleniyorsa okul verisini de güncelle
+      if (selectedRole == 'Veli' && selectedSchool != null && studentName.isNotEmpty && studentClass.isNotEmpty) {
+        final schoolRef = _firestore.collection('schools').doc(selectedSchool!.schoolId);
+
+        // Mevcut sınıflar ve öğrenciler Map yapısına göre güncelleniyor
+        final classesMap = selectedSchool!.classes ?? {};
+        if (!classesMap.containsKey(studentClass)) {
+          classesMap[studentClass] = [];
+        }
+        classesMap[studentClass]!.add(studentName);
+
+        batch.update(schoolRef, {
+          'classes': classesMap,
+        });
+      }
+
+      await batch.commit();
       return null;
     } catch (e) {
-      return 'Kullanıcı eklenirken hata oluştu: $e';
+      return 'Kullanıcı eklenirken bir hata oluştu: $e';
     }
   }
 
@@ -109,13 +90,9 @@ class AddUserController {
 
   void dispose() {
     nameController.dispose();
-    surnameController.dispose();
-    usernameController.dispose();
     passwordController.dispose();
     phoneController.dispose();
-    schoolNameController.dispose();
-    schoolIdController.dispose();
-    classController.dispose();
     studentNameController.dispose();
+    studentClassController.dispose();
   }
 }

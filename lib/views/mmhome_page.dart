@@ -55,7 +55,7 @@ class _MainManagerHomePageState extends State<MainManagerHomePage> {
               items: _controller.managers
                   .map((manager) => DropdownMenuItem<Users>(
                         value: manager,
-                        child: Text(manager.name ?? manager.username ?? 'Yönetici'),
+                        child: Text(manager.name ?? manager.name ?? 'Yönetici'),
                       ))
                   .toList(),
               onChanged: (manager) {

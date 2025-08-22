@@ -1,10 +1,11 @@
-// lib/views/profile_page.dart
 import 'package:flutter/material.dart';
-import 'package:kurumzili/controllers/profile_controller.dart';
+import 'package:flutter/services.dart'; // 1. BU SATIRI EKLEYİN
+import '../controllers/profile_controller.dart';
 import '../model/user_model.dart';
 
 class ProfilePage extends StatefulWidget {
-  final Users user; // Kullanıcı bilgilerini alacak
+  final Users user;
+
   const ProfilePage({super.key, required this.user});
 
   @override
@@ -13,6 +14,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   late final ProfilePageController _controller;
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -28,11 +30,21 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final role = widget.user.role ?? '';
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profil: ${widget.user.username ?? 'Kullanıcı'}',style: TextStyle(color:Colors.white),),
-        iconTheme: IconThemeData(color: Colors.white),
+        title: Text('Profil: ${widget.user.name ?? 'Kullanıcı'}',
+            style: const TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 13, 22, 74),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      // 2. FLOATING ACTION BUTTON BURAYA EKLENDİ
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => SystemNavigator.pop(),
+        tooltip: 'Uygulamadan Çık',
+        backgroundColor: const Color.fromARGB(255, 13, 22, 74),
+        child: const Icon(Icons.exit_to_app, color: Colors.white),
       ),
       body: SafeArea(
         child: Padding(
@@ -48,22 +60,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: _controller.usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Kullanıcı Adı',
-                    prefixIcon: Icon(Icons.account_circle),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _controller.schoolNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Okul Adı',
-                    prefixIcon: Icon(Icons.school),
-                  ),
-                ),
-                const SizedBox(height: 16),
+
                 TextField(
                   controller: _controller.phoneController,
                   decoration: const InputDecoration(
@@ -73,49 +70,66 @@ class _ProfilePageState extends State<ProfilePage> {
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: _controller.emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'E-posta',
-                    prefixIcon: Icon(Icons.email),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _controller.passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Şifre',
-                    prefixIcon: Icon(Icons.lock),
-                  ),
-                  obscureText: true,
-                ),
 
-                // Eğer kullanıcı Veli ise öğrenci bilgilerini göster
-                if (widget.user.role == 'Veli') ...[
-                  const SizedBox(height: 16),
+                if (role == 'Veli' ||
+                    role == 'Yönetici' ||
+                    role == 'Öğretmen') ...[
                   TextField(
+                    controller: _controller.schoolController,
                     decoration: const InputDecoration(
-                      labelText: 'Öğrenci Adı',
-                      prefixIcon: Icon(Icons.child_care),
-                    ),
-                    controller: TextEditingController(
-                      text: widget.user.name ?? '', // Öğrenci adı burada tutulabilir
+                      labelText: 'Okul',
+                      prefixIcon: Icon(Icons.school),
                     ),
                   ),
                   const SizedBox(height: 16),
+                ],
+
+                if (role == 'Veli' || role == 'Öğretmen') ...[
                   TextField(
+                    controller: _controller.classController,
+                    readOnly: role == 'Veli',
                     decoration: const InputDecoration(
                       labelText: 'Sınıf',
                       prefixIcon: Icon(Icons.class_),
                     ),
-                    controller: TextEditingController(
-                      text: widget.user.schoolName ?? '', // Sınıf bilgisi burada tutulabilir
-                    ),
                   ),
+                  
+                  const SizedBox(height: 16),
                 ],
 
+                if (role == 'Veli') ...[
+                  TextField(
+                    controller: _controller.spouseController,
+                    decoration: const InputDecoration(
+                      labelText: 'Eş Bilgisi',
+                      prefixIcon: Icon(Icons.group),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                TextField(
+                  controller: _controller.passwordController,
+                  obscureText: !_isPasswordVisible,
+                  decoration: InputDecoration(
+                    labelText: 'Şifre',
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 24),
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -127,7 +141,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     onPressed: () {
-                      // Burada güncelleme işlemini ekleyebilirsin
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Bilgiler güncellendi! (Simülasyon)'),

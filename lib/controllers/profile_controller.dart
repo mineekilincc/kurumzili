@@ -1,45 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:kurumzili/model/user_model.dart';
+import '../model/user_model.dart';
+
 class ProfilePageController {
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController schoolNameController = TextEditingController();
+  final TextEditingController schoolController = TextEditingController();
+  final TextEditingController classController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController spouseController = TextEditingController();
 
-  String selectedRole = 'Veli'; // default rol, kullanıcıdan alınabilir
   final Users user;
+
   ProfilePageController({required this.user}) {
     loadUser(user);
   }
 
   void loadUser(Users user) {
     nameController.text = user.name ?? '';
-    schoolNameController.text = user.schoolName ?? '';
-    phoneController.text = user.phone?.toString() ?? '';
-    usernameController.text = user.username ?? '';
+    phoneController.text = user.phone ?? '';
+    schoolController.text = user.schoolName ?? '';
+    
+    // HATA BURADAYDI, DÜZELTİLDİ:
+    // Liste elemanlarını virgül ve boşlukla birleştirerek tek bir String'e dönüştür.
+    classController.text = user.studentclasses?.join(', ') ?? '';
+    
     passwordController.text = user.password ?? '';
-    selectedRole = user.role ?? 'Veli';
+    spouseController.text = user.spouseName ?? '';
   }
 
   void dispose() {
     nameController.dispose();
-    schoolNameController.dispose();
+    schoolController.dispose();
+    classController.dispose();
     phoneController.dispose();
-    emailController.dispose();
-    usernameController.dispose();
     passwordController.dispose();
-  }
-
-  // BottomNavigationBar için örnek
-  void onItemTapped(int index, BuildContext context) {
-    // Navigation logic buraya
-  }
-
-  // Validator örnek
-  String? validateTurkish(String? value, String fieldName) {
-    if (value == null || value.isEmpty) return '$fieldName boş olamaz';
-    return null;
+    spouseController.dispose();
   }
 }

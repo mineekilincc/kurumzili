@@ -1,60 +1,57 @@
-class SchoolModel {
+class Schools {
   final String schoolId;
   final String schoolName;
-  final List<String> classes;
-  final Map<String, List<String>> students;
+  final bool status;
+  final String? anons;
+  final Map<String, List<String>>? classes; // Sınıf adı -> öğrenci listesi
 
-  SchoolModel({
+  Schools({
     required this.schoolId,
     required this.schoolName,
-    required this.classes,
-    required this.students,
+    required this.status,
+    this.anons,
+    this.classes,
   });
 
-  /// Firestore dokümanından SchoolModel oluştur
-  factory SchoolModel.fromMap(Map<String, dynamic> map, String docId) {
-    // Sınıflar listesi
-    final classList = List<String>.from(map['classes'] ?? []);
-
-    // Öğrenciler map'i, her value bir liste olacak şekilde
-    final studentsMap = <String, List<String>>{};
-    if (map['students'] != null && map['students'] is Map) {
-      final rawStudents = Map<String, dynamic>.from(map['students']);
-      rawStudents.forEach((key, value) {
-        if (value is List) {
-          studentsMap[key] = List<String>.from(value);
-        } else if (value is String) {
-          studentsMap[key] = [value];
-        }
-      });
-    }
-
-    return SchoolModel(
-      schoolId: map['schoolId'] ?? docId,
-      schoolName: map['schoolName'] ?? '',
-      classes: classList,
-      students: studentsMap,
+  // Firestore JSON’dan parse
+  factory Schools.fromJson(Map<String, dynamic> json) {
+    return Schools(
+      schoolId: json['schoolId'] ?? '',
+      schoolName: json['schoolName'] ?? '',
+      status: json['status'] ?? false,
+      anons: json['anons'],
+      classes: (json['classes'] as Map?)?.map(
+        (key, value) => MapEntry(
+          key.toString(),
+          List<String>.from(value as List<dynamic>),
+        ),
+      ),
     );
   }
 
-  /// SchoolModel'i JSON'a çevir
+  // Firestore Map + docId ile parse
+  factory Schools.fromMap(Map<String, dynamic> map, String docId) {
+    return Schools(
+      schoolId: map['schoolId'] ?? docId,
+      schoolName: map['schoolName'] ?? '',
+      status: map['status'] ?? false,
+      anons: map['anons'],
+      classes: (map['classes'] as Map?)?.map(
+        (key, value) => MapEntry(
+          key.toString(),
+          List<String>.from(value as List<dynamic>),
+        ),
+      ),
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'schoolId': schoolId,
       'schoolName': schoolName,
+      'status': status,
+      'anons': anons,
       'classes': classes,
-      'students': students,
     };
   }
-
-  /// Dropdown ve karşılaştırmalar için eşitlik
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SchoolModel &&
-          runtimeType == other.runtimeType &&
-          schoolId == other.schoolId;
-
-  @override
-  int get hashCode => schoolId.hashCode;
 }

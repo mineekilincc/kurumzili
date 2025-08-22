@@ -4,8 +4,8 @@ import '../model/school_model.dart';
 
 class MainManagerHomeController {
   List<Users> managers = [];
-  List<SchoolModel> allSchools = [];
-  List<SchoolModel> selectedSchools = [];
+  List<Schools> allSchools = [];
+  List<Schools> selectedSchools = [];
 
   Users? selectedManager;
 
@@ -29,7 +29,7 @@ class MainManagerHomeController {
       final schoolSnapshot =
           await FirebaseFirestore.instance.collection('schools').get();
       allSchools = schoolSnapshot.docs
-          .map((doc) => SchoolModel.fromMap(doc.data(), doc.id))
+          .map((doc) => Schools.fromMap(doc.data(), doc.id))
           .toList();
     } catch (e) {
       throw Exception('Veri çekilirken hata: $e');
@@ -49,7 +49,7 @@ class MainManagerHomeController {
   }
 
   /// Checkbox toggle
-  void toggleSchool(SchoolModel school) {
+  void toggleSchool(Schools school) {
     if (selectedSchools.contains(school)) {
       selectedSchools.remove(school);
     } else {

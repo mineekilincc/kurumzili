@@ -7,14 +7,17 @@ class Users {
   String? name;
   String? surname;
   String? schoolName;
-  String? username;
+  String? userNames;
   String? childOfPhone;
+  String? spouseId;      // yeni
+  String? spouseName;    // yeni
+  String? spousePhone;   // yeni
   List<String> allowedSchoolIds;
-  List<String>? students; // ✅ yeni eklendi
-  List<String>? studentclasses;
-  
+  Map<String, String>? studentNames; // Sınıf -> Öğrenci adı
+  List<String>? studentclasses;      // Sınıflar listesi
 
   Users({
+    this.userid,
     this.password,
     this.role,
     this.phone,
@@ -22,45 +25,56 @@ class Users {
     this.name,
     this.surname,
     this.schoolName,
-    this.username,
+    this.userNames,
     this.childOfPhone,
+    this.spouseId,
+    this.spouseName,
+    this.spousePhone,
     List<String>? allowedSchoolIds,
-    this.students, // ✅ constructor'da
+    this.studentNames,
     this.studentclasses,
   }) : allowedSchoolIds = allowedSchoolIds ?? [];
 
   Users.fromJson(Map<String, dynamic> json)
-      : password = json['password']?.toString(),
-        role = json['role']?.toString(),
-        phone = json['phone']?.toString(),
-        schoolId = json['schoolId']?.toString(),
-        name = json['name']?.toString(),
-        surname = json['surname']?.toString(),
-        schoolName = json['schoolName']?.toString(),
-        username = json['username']?.toString(),
-        childOfPhone = json['childOfPhone']?.toString(),
-        allowedSchoolIds = List<String>.from(json['allowedSchoolIds'] ?? []),
-        students = json['studentNames'] != null
-            ? List<String>.from(json['studentNames'])
-            : json['studentName'] != null
-                ? [json['studentName']] // tek öğrenci varsa da listeye çevir
-                : [], // ✅ fromJson'a eklendi
-        studentclasses = json['studentclasses'] != null
-            ? List<String>.from(json['studentclasses'])
-            : []; // öğrenci sınıfları eklendi
+    : userid = json['userid']?.toString(),
+      password = json['password']?.toString(),
+      role = json['role']?.toString(),
+      phone = json['phone']?.toString(),
+      schoolId = json['schoolId']?.toString(),
+      name = json['name']?.toString(),
+      surname = json['surname']?.toString(),
+      schoolName = json['schoolName']?.toString(),
+      userNames = json['userNames']?.toString(),
+      childOfPhone = json['childOfPhone']?.toString(),
+      spouseId = json['spouseId']?.toString(),
+      spouseName = json['spouseName']?.toString(),
+      spousePhone = json['spousePhone']?.toString(),
+      allowedSchoolIds = List<String>.from(json['allowedSchoolIds'] ?? []),
+      studentNames = (json['studentNames'] as Map<String, dynamic>?)
+              ?.map((k, v) => MapEntry(k.toString(), v.toString())) ??
+          {},
+      studentclasses = (json['studentclasses'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [];
 
   Map<String, dynamic> toJson() {
     return {
+      'userid': userid,
       'password': password,
       'role': role,
       'phone': phone,
       'schoolId': schoolId,
       'name': name,
       'surname': surname,
-      'username': username,
+      'schoolName': schoolName,
+      'userNames': userNames,
       'childOfPhone': childOfPhone,
+      'spouseId': spouseId,
+      'spouseName': spouseName,
+      'spousePhone': spousePhone,
       'allowedSchoolIds': allowedSchoolIds,
-      'studentNames': students, // ✅ toJson'a eklendi
+      'studentNames': studentNames,
       'studentclasses': studentclasses,
     };
   }

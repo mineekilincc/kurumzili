@@ -1,53 +1,86 @@
 import 'package:flutter/material.dart';
 import '../model/user_model.dart';
-import '../views/profile_page.dart'; // ProfilePage dosyasını import et
+import '../views/profile_page.dart';
+import '../views/qrscan_page.dart';
 
 class VeliHomeController {
-  final Users user; // Users nesnesini al
+  final Users user;
   int selectedIndex = 0;
   final VoidCallback onStateChanged;
 
+  List<String> studentNames = [];
+  String? selectedStudent;
+  String? selectedStudentClass;
+
   VeliHomeController({required this.user, required this.onStateChanged}) {
-  nameController.text = user.name ?? '';
-  phoneController.text = user.phone ?? '';
-  // usernameController artık gerekli değilse kullanmayabilirsin
-}
+    fetchStudents();
+  }
 
+  /// Öğrencileri çek ve varsayılan seçim yap
+  void fetchStudents() {
+    // Map<String, String> -> [isimler]
+    studentNames = user.studentNames?.values.toList() ?? [];
 
-  late final TextEditingController nameController = TextEditingController();
-  late final TextEditingController schoolNameController = TextEditingController();
-  late final TextEditingController phoneController = TextEditingController();
-  late final TextEditingController emailController = TextEditingController();
-  late final TextEditingController passwordController = TextEditingController();
+    if (studentNames.isNotEmpty) {
+      selectedStudent = studentNames.first;
+      selectedStudentClass = user.studentNames?.entries
+          .firstWhere(
+            (entry) => entry.value == selectedStudent,
+            orElse: () => const MapEntry('Bilinmiyor', ''),
+          )
+          .key;
+    }
 
+    onStateChanged();
+  }
+
+  /// Dropdowndan öğrenci seçildiğinde
+  void onStudentSelected(String? studentName) {
+    if (studentName != null) {
+      selectedStudent = studentName;
+      selectedStudentClass = user.studentNames?.entries
+          .firstWhere(
+            (entry) => entry.value == studentName,
+            orElse: () => const MapEntry('Bilinmiyor', ''),
+          )
+          .key;
+      onStateChanged();
+    }
+  }
+
+  /// Alt menü tıklamaları
   void onItemTapped(BuildContext context, int index) {
     selectedIndex = index;
-    onStateChanged();
-
     switch (index) {
-      case 0:
-        // Ana Sayfa (kendisi zaten home)
-        break;
       case 1:
-        // QR Kod Okut (kendin yönlendirebilirsin)
+        if (selectedStudent != null && selectedStudentClass != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => QRScanPage(
+                user: user,
+                selectedStudentName: selectedStudent,
+                selectedStudentClass: selectedStudentClass,
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Lütfen önce öğrenci seçin.')),
+          );
+        }
         break;
       case 2:
-        // Profil sayfasına git
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ProfilePage(user: user), // Users nesnesi gönderiliyor
+            builder: (_) => ProfilePage(user: user),
           ),
         );
         break;
     }
+    onStateChanged();
   }
 
-  void dispose() {
-    nameController.dispose();
-    schoolNameController.dispose();
-    phoneController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-  }
+  void dispose() {}
 }
